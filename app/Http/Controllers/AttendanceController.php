@@ -23,7 +23,7 @@ class AttendanceController extends Controller
     {
         try {
             // Retrieve the IP address from the request
-            $ip_address = '192.168.0.99';
+            $ip_address = '192.168.0.92';
             $port = 4370; // Default to 4370 if not provided
 
             // Initialize ZKTeco with the provided IP address and port
@@ -79,70 +79,47 @@ class AttendanceController extends Controller
                                     'date' => Carbon::parse($record['timestamp'])->format('Y-m-d')
                                 ]);
 
-                        // $response = Http::get('https://cms.nedubd.com/api/attendances');
-                        // $attendanceData = $response->json();
-
-                        // dd( $attendanceData);
-                        // $existingAttendance = collect($attendanceData["data"])->firstWhere(function ($attendance) use ($record, $timestamp_date) {
-                        //     return $attendance['student_id'] == $record['id'] && $attendance['date'] == $timestamp_date;
-                        // });
-
-                        // if ($existingAttendance) {
-                        //     $response = Http::put("https://cms.nedubd.com/api/attendances/{$existingAttendance['id']}", [
-                        //         'student_id' => $record['id'],
-                        //         'in_time' => $last_in,
-                        //         'out_time' => $record['timestamp'],
-                        //         'machine_no' => $serialNumber,
-                        //         'date' => Carbon::parse($record['timestamp'])->format('Y-m-d')
-                        //     ]);
-                        //     Log::info('Update Response status: ' . $response->status());
-                        //     Log::info('Update Response body: ' . $response->body());
-                        // }
-                        //  else {
-                        //     $response = Http::post('https://cms.nedubd.com/api/create-attendance', [
-                        //         'student_id' => $record['id'],
-                        //         'in_time' => $last_in,
-                        //         'out_time' => $timestamp,
-                        //         'machine_no' => $serialNumber,
-                        //         'date' => $timestamp_date
-                        //     ]);
-                        //     Log::info('Create Response status: ' . $response->status());
-                        //     Log::info('Create Response body: ' . $response->body());
-                        // }
+                       
                         $response = Http::post('https://cms.nedubd.com/api/create-attendance', [
                             'student_id' => $record['id'],
                             'in_time' => $last_in,
                             'out_time' => $record['timestamp'],
                             'machine_no' => $serialNumber,
-                            'date' =>Carbon::parse($record['timestamp'])->format('Y-m-d') 
+                            'date' =>Carbon::parse($record['timestamp'])->format('Y-m-d') ,
+                            'school_code'=>"100",
+                            'attendance_type'=>'machine',
+                            'attendance_status'=>'present'
                         ]);
-                        // Log::info('Create Response status: ' . $response->status());
-                        // Log::info('Create Response body: ' . $response->body());
+                        Log::info('Create Response status: ' . $response->status());
+                        Log::info('Create Response body: ' . $response->body());
 
                     } else {
                         InOut::create([
                             'user_id' => $record['id'],
                             'in_time' => $record['timestamp'],
-                            'out_time' => null,
+                            'out_time' =>$record['timestamp'],
                             'time_calc' => 0,
                             'date' => Carbon::parse($record['timestamp'])->format('Y-m-d')
                         ]);
                         $response = Http::post('https://cms.nedubd.com/api/create-attendance', [
                             'student_id' => $record['id'],
                             'in_time' => $record['timestamp'],
-                            'out_time' => null,
+                            'out_time' =>$record['timestamp'],
                             'machine_no' => $serialNumber,
-                            'date' => Carbon::parse($record['timestamp'])->format('Y-m-d')
+                            'date' => Carbon::parse($record['timestamp'])->format('Y-m-d'),
+                            'school_code'=>"100",
+                            'attendance_type'=>'machine',
+                            'attendance_status'=>'present'
                         ]);
-                        // Log::info('Create Response status: ' . $response->status());
-                        // Log::info('Create Response body: ' . $response->body());
+                        Log::info('Create Response status: ' . $response->status());
+                        Log::info('Create Response body: ' . $response->body());
                     }
                 } else {
-                    // Log::info('Duplicate attendance record found: ', $record);
+                    Log::info('Duplicate attendance record found: ', $record);
                 }
             }
         } catch (\Exception $e) {
-            // Log::error('Error processing attendance: ' . $e->getMessage());
+            Log::error('Error processing attendance: ' . $e->getMessage());
         }
     }
 
